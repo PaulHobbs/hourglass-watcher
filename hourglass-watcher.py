@@ -42,9 +42,10 @@ def string_time_to_unix(string_time):
 
 def process_point(datum, goal):
 
-  if repr(datum) in seen:
+  hash_ = json.dumps(datum, sort_keys = True)
+  if hash_ in seen:
     return
-  seen.add(repr(datum))
+  seen.add(hash_)
 
   h,m,s = datum['duration'].split(':')
   dur = int(h)*60 + int(m)  # round off seconds because of tracking overhead.
