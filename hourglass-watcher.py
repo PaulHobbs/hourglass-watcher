@@ -44,7 +44,6 @@ def process_point(datum, goal):
 
   if repr(datum) in seen:
     return
-
   seen.add(repr(datum))
 
   h,m,s = datum['duration'].split(':')
@@ -59,14 +58,12 @@ def process_point(datum, goal):
 
 
 def put_point(timestamp, dur, goal, note):
-  # TODO actually push the point to the api
   print timestamp, dur, goal
 
 
   success = False
   while not success:
     try:
-      # TODO get the point ID and put it in a set of already considered points.
       args = ['http', 'POST', root() + '/goals/' + goal + '/datapoints.json',
                   'timestamp=%d' % timestamp,
                   'value=%d' % dur,
