@@ -42,6 +42,7 @@ def string_time_to_unix(string_time):
 
 def process_point(datum, goal):
 
+  # Don't tell Beeminder twice about the same data point.
   hash_ = json.dumps(datum, sort_keys = True)
   if hash_ in seen:
     return
@@ -53,7 +54,7 @@ def process_point(datum, goal):
 
   comment = datum['note']
   if datum['tags']:
-    comment += "  tags:" + ", ".join(datum['tags'])
+    comment += "  tags:" + datum['tags']
 
   put_point(timestamp, dur, goal, comment)
 
