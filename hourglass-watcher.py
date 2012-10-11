@@ -55,7 +55,7 @@ def process_point(datum, goal):
 
   comment = datum['note']
   if datum['tags']:
-    comment += "  tags:" + datum['tags'])
+    comment += "  tags:" + datum['tags']
 
   put_point(timestamp, dur, goal, comment)
 
