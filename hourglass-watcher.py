@@ -117,7 +117,6 @@ def main():
   global AUTH_TOKEN, USER
   USER, AUTH_TOKEN = sys.argv[1:3]
 
-
   while 1:
     sleep (5)
     after = set(os.listdir('.'))
@@ -145,4 +144,13 @@ def update_goals():
 
 
 if __name__ == '__main__':
-  main()
+  # maintain the set of seen points between runs.
+  with open("seen.db", "r") as fp:
+    seen = pickle.load(fp)
+
+  try:
+    main()
+  except:
+    with open("seen.db", "w") as fp:
+      pickle.dump(seen, fp)
+    raise
