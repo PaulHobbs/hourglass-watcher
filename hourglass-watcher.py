@@ -35,7 +35,8 @@ def string_time_to_unix(string_time):
 
   today = date.today()
   extra = timedelta(0,0,0,0,0,
-                    12 if am_pm.lower() == "pm" else 0)
+                    12 if am_pm.lower() == "pm" and h != 12
+                    else 0)
   then = datetime(today.year, today.month, today.day, h, m, s, 0) + extra
   return mktime(then.timetuple())  # convert to unix timestamp
 
@@ -54,7 +55,7 @@ def process_point(datum, goal):
 
   comment = datum['note']
   if datum['tags']:
-    comment += "  tags:" + datum['tags']
+    comment += "  tags:" + datum['tags'])
 
   put_point(timestamp, dur, goal, comment)
 
