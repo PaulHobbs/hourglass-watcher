@@ -82,8 +82,7 @@ def put_point(timestamp, dur, goal, note):
       success = True
     except Exception as e:
       print "Warning: POSTing failed with exception: ", e
-      sleep(5)
-
+      sleep(10)
 
 
 def process_file(fname):
@@ -118,7 +117,7 @@ def main():
   USER, AUTH_TOKEN = sys.argv[1:3]
 
   while 1:
-    sleep (5)
+    sleep(60)
     after = set(os.listdir('.'))
     added = [name for name in after - before
              if '_logs_' in name]
@@ -145,8 +144,11 @@ def update_goals():
 
 if __name__ == '__main__':
   # maintain the set of seen points between runs.
-  with open("seen.db", "r") as fp:
-    seen = pickle.load(fp)
+  try:
+    with open("seen.db", "r") as fp:
+      seen = pickle.load(fp)
+  except OSError:
+    pass
 
   try:
     main()
