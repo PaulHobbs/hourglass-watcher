@@ -147,7 +147,7 @@ if __name__ == '__main__':
   try:
     with open("seen.db", "r") as fp:
       seen = pickle.load(fp)
-  except OSError:
+  except IOError:
     pass
 
   try:
