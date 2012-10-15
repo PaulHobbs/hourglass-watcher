@@ -1,9 +1,9 @@
-#! /usr/bin/python2.7
+#! /usr/local/bin/python3
 import csv
 import os
 import sys
 import subprocess
-import cPickle as pickle
+import pickle
 
 from pprint import pprint
 from time import sleep
@@ -11,9 +11,11 @@ from operator import itemgetter
 from itertools import count, chain
 from datetime import datetime, date, timedelta
 from time import mktime
-import simplejson as json
+import json
 
-ext = subprocess.check_output
+def ext(*args):
+ result  = subprocess.check_output(*args)
+ return result.decode('utf-8')
 
 USER = None
 AUTH_TOKEN = None
@@ -62,7 +64,7 @@ def process_point(datum, goal):
 
 
 def put_point(timestamp, dur, goal, note):
-  print timestamp, dur, goal
+  print (timestamp, dur, goal)
 
 
   success = False
@@ -73,16 +75,16 @@ def put_point(timestamp, dur, goal, note):
                   'value=%d' % dur,
                   "comment='%s'" % note,
                   token()]
-      print "args: "
+      print ("args: ")
       pprint(args)
       result = ext(args)
-      print "Success!  Result:"
-      print
-      print result
-      print
+      print ("Success!  Result:")
+      print ()
+      print (result)
+
       success = True
     except Exception as e:
-      print "Warning: POSTing failed with exception: ", e
+      print ("Warning: POSTing failed with exception: ", e)
       sleep(10)
 
 
@@ -90,15 +92,15 @@ def process_file(fname):
   data = []
   with open(fname, 'r') as fp:
     rdr = csv.reader(fp)
-    first_row = rdr.next()
-    print "Column names: ", first_row
+    first_row = next(rdr)
+    print ("Column names: ", first_row)
     get = dict(zip(first_row,
                    map(itemgetter, range(len(first_row)))))
 
     for row in csv.reader(fp):
-      print "read row: ", row
+      print ("read row: ", row)
       datum = {}
-      for k, a in get.iteritems():
+      for k, a in get.items():
         datum[k] = a(row)
 
       data.append(datum)
@@ -118,17 +120,17 @@ def main():
   USER, AUTH_TOKEN = sys.argv[1:3]
 
   while 1:
-    sleep(60)
     after = set(os.listdir('.'))
     added = [name for name in after - before
              if '_logs_' in name]
 
-    if added: print "Added: ", ", ".join (added)
+    if added: print ("Added: ", ", ".join (added))
 
     update_goals()
-    map(process_file, added)
+    list(map(process_file, added))
 
     before = after
+    sleep(60)
 
 
 def update_goals():
@@ -139,14 +141,15 @@ def update_goals():
                   token()])
     GOALS = json.loads(result)['goals']
   except Exception as e:
-    print "Warning: goal-getting failed!"
-    print e
+    print ("Warning: goal-getting failed!")
+    raise
+    print (e)
 
 
 if __name__ == '__main__':
   # maintain the set of seen points between runs.
   try:
-    with open("seen.db", "r") as fp:
+    with open("seen.db", "rb") as fp:
       seen = pickle.load(fp)
   except IOError:
     pass
@@ -154,6 +157,6 @@ if __name__ == '__main__':
   try:
     main()
   except:
-    with open("seen.db", "w") as fp:
+    with open("seen.db", "wb") as fp:
       pickle.dump(seen, fp)
     raise
