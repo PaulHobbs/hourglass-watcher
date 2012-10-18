@@ -124,9 +124,9 @@ def main():
     added = [name for name in after - before
              if '_logs_' in name]
 
-    if added: print ("Added: ", ", ".join (added))
-
-    update_goals()
+    if added:
+      print ("Added: ", ", ".join (added))
+      update_goals()
     list(map(process_file, added))
 
     before = after
