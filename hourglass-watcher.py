@@ -14,7 +14,7 @@ from time import mktime
 import json
 
 def ext(*args):
- result  = subprocess.check_output(*args)
+ result = subprocess.check_output(*args)
  return result.decode('utf-8')
 
 USER = None
@@ -142,7 +142,6 @@ def update_goals():
     GOALS = json.loads(result)['goals']
   except Exception as e:
     print ("Warning: goal-getting failed!")
-    raise
     print (e)
 
 
