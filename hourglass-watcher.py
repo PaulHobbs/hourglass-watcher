@@ -130,7 +130,7 @@ def main():
     list(map(process_file, added))
 
     before = after
-    sleep(60)
+    sleep(10)
 
 
 def update_goals():
