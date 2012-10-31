@@ -52,7 +52,10 @@ def process_point(datum, goal):
     return
   seen.add(hash_)
 
-  h,m,s = datum['duration'].split(':')
+  try:
+    h,m,_ = datum['duration'].split(':')
+  except ValueError:
+    m,_ = datum['duration'].split(':')
   dur = int(h)*60 + int(m)  # round off seconds because of tracking overhead.
   timestamp = datum['start time']
 
