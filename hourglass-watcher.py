@@ -25,6 +25,7 @@ seen = set()
 def root():
   return 'https://www.beeminder.com/api/v1/users/' + USER
 
+
 def token():
   return 'auth_token=%s' % AUTH_TOKEN
 
