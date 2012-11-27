@@ -31,16 +31,14 @@ def token():
 
 
 def string_time_to_unix(string_time):
-  h, m, s, am_pm = chain.from_iterable(
+  h, m, s = chain.from_iterable(
       map(lambda part: part.split(),
           string_time.split(':')))
 
   h,m,s = map(int, (h,m,s))
 
   today = date.today()
-  extra = timedelta(0,0,0,0,0,
-                    12 if am_pm.lower() == "pm" and h != 12
-                    else 0)
+  extra = timedelta(0,0,0,0,0,0)
   then = datetime(today.year, today.month, today.day, h, m, s, 0) + extra
   return mktime(then.timetuple())  # convert to unix timestamp
 
