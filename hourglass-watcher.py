@@ -58,9 +58,12 @@ def process_file(fname):
   for datum in data:
     activity = datum['activity name']
     datum['start time'] = string_time_to_unix(datum['start time'])
+
     if activity == 'sleep' or 'sleep' in datum['hierarchy path']:
-      sleep_handler(datum)
-    elif activity in GOALS:
+      datum['activity name'] = 'sleepdebt'
+      datum['duration'] = sleep_handler(datum)
+
+    if activity in GOALS:
       upload.process_point(datum, activity)
 
 
