@@ -1,93 +1,41 @@
 #! /usr/local/bin/python3
+import contextlib
 import csv
 import os
-import sys
-import subprocess
 import pickle
+import sys
 
-from pprint import pprint
-from time import sleep
-from operator import itemgetter
-from itertools import count, chain
 from datetime import datetime, date, timedelta
+from itertools import chain
+from operator import itemgetter
+from sleep_logic import sleep_handler
 from time import mktime
-import json
+from time import sleep
 
-def ext(*args):
- result = subprocess.check_output(*args)
- return result.decode('utf-8')
+import upload
 
-USER = None
-AUTH_TOKEN = None
-
+GOALS = None
 seen = set()
 
-def root():
-  return 'https://www.beeminder.com/api/v1/users/' + USER
 
+def main():
+  path_to_watch = "."
+  before = set(os.listdir(path_to_watch))
 
-def token():
-  return 'auth_token=%s' % AUTH_TOKEN
+  upload.USER, upload.AUTH_TOKEN = sys.argv[1:3]
 
+  while 1:
+    after = set(os.listdir('.'))
+    added = [name for name in after - before
+             if '_logs_' in name]
 
-def string_time_to_unix(string_time):
-  h, m, s = chain.from_iterable(
-      map(lambda part: part.split(),
-          string_time.split(':')))
+    if added:
+      print ("Added: ", ", ".join (added))
+      upload.update_goals()
+    list(map(process_file, added))
 
-  h,m,s = map(int, (h,m,s))
-
-  today = date.today()
-  extra = timedelta(0,0,0,0,0,0)
-  then = datetime(today.year, today.month, today.day, h, m, s, 0) + extra
-  return mktime(then.timetuple())  # convert to unix timestamp
-
-
-def process_point(datum, goal):
-
-  # Don't tell Beeminder twice about the same data point.
-  hash_ = json.dumps(datum, sort_keys = True)
-  if hash_ in seen:
-    return
-  seen.add(hash_)
-
-  try:
-    h,m,_ = datum['duration'].split(':')
-  except ValueError:
-    m,_ = datum['duration'].split(':')
-  dur = int(h)*60 + int(m)  # round off seconds because of tracking overhead.
-  timestamp = datum['start time']
-
-  comment = datum['note']
-  if datum['tags']:
-    comment += "  tags:" + datum['tags']
-
-  put_point(timestamp, dur, goal, comment)
-
-
-def put_point(timestamp, dur, goal, note):
-  print (timestamp, dur, goal)
-
-
-  success = False
-  while not success:
-    try:
-      args = ['http', 'POST', root() + '/goals/' + goal + '/datapoints.json',
-                  'timestamp=%d' % timestamp,
-                  'value=%d' % dur,
-                  "comment='%s'" % note,
-                  token()]
-      print ("args: ")
-      pprint(args)
-      result = ext(args)
-      print ("Success!  Result:")
-      print ()
-      print (result)
-
-      success = True
-    except Exception as e:
-      print ("Warning: POSTing failed with exception: ", e)
-      sleep(10)
+    before = after
+    sleep(10)
 
 
 def process_file(fname):
@@ -110,54 +58,50 @@ def process_file(fname):
   for datum in data:
     activity = datum['activity name']
     datum['start time'] = string_time_to_unix(datum['start time'])
-    if activity in GOALS:
-      process_point(datum, activity)
+    if activity == 'sleep' or 'sleep' in datum['hierarchy path']:
+      sleep_handler(datum)
+    elif activity in GOALS:
+      upload.process_point(datum, activity)
 
 
-def main():
-  path_to_watch = "."
-  before = set(os.listdir(path_to_watch))
+def string_time_to_unix(string_time):
+  hms = chain.from_iterable(
+      map(lambda part: part.split(),
+          string_time.split(':')))
 
-  global AUTH_TOKEN, USER
-  USER, AUTH_TOKEN = sys.argv[1:3]
+  # handle 24 hour time as always AM
+  if len(hms) == 3:
+    hms = list(hms)
+    hms.append('am')
 
-  while 1:
-    after = set(os.listdir('.'))
-    added = [name for name in after - before
-             if '_logs_' in name]
+  h, m, s, am_pm = hms
 
-    if added:
-      print ("Added: ", ", ".join (added))
-      update_goals()
-    list(map(process_file, added))
+  h,m,s = map(int, (h,m,s))
 
-    before = after
-    sleep(10)
-
-
-def update_goals():
-  global GOALS
-
-  try:
-    result = ext(["http", 'GET', root() + '.json',
-                  token()])
-    GOALS = json.loads(result)['goals']
-  except Exception as e:
-    print ("Warning: goal-getting failed!")
-    print (e)
+  today = date.today()
+  extra = timedelta(0,0,0,0,0, 12 if am_pm.lower() == "pm" and h != 12 else 0)
+  then = datetime(today.year, today.month, today.day, h, m, s, 0) + extra
+  return mktime(then.timetuple())  # return unix timestamp
 
 
-if __name__ == '__main__':
+
+@contextlib.contextmanager
+def load_unload(k, m):
   # maintain the set of seen points between runs.
   try:
-    with open("seen.db", "rb") as fp:
-      seen = pickle.load(fp)
+    with open(k + ".db", "rb") as fp:
+      m[k] = pickle.load(fp)
   except IOError:
     pass
 
   try:
-    main()
+    yield
   except:
-    with open("seen.db", "wb") as fp:
-      pickle.dump(seen, fp)
+    with open(k + ".db", "wb") as fp:
+      pickle.dump(m[k], fp)
     raise
+
+
+if __name__ == '__main__':
+  with load_unload("seen", globals()):
+    main()
