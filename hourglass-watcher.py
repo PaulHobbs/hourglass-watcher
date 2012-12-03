@@ -14,9 +14,6 @@ from time import sleep
 
 import upload
 
-seen = set()
-
-
 def main():
   path_to_watch = "."
   before = set(os.listdir(path_to_watch))
@@ -60,7 +57,7 @@ def process_file(fname):
 
     heirarchy_goal = False
     if activity == 'sleep' or 'sleep' in datum['hierarchy path']:
-      datum['activity name'] = 'sleepdebt'
+      activity = 'sleepdebt'
       datum['duration'] = sleep_handler(datum)
       heirarchy_goal = True
 
@@ -88,7 +85,6 @@ def string_time_to_unix(string_time):
   return mktime(then.timetuple())  # return unix timestamp
 
 
-
 @contextlib.contextmanager
 def load_unload(k, m):
   # maintain the set of seen points between runs.
@@ -112,5 +108,5 @@ def load_unload(k, m):
 
 
 if __name__ == '__main__':
-  with load_unload("seen", globals()):
+  with load_unload("seen", upload.__dict__):
     main()

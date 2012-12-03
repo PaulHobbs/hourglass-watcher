@@ -43,16 +43,16 @@ def duration_to_minutes(datum):
 def process_point(datum, goal):
   """ Upload the duration to the beeminder goal. """
 
+  # Don't tell Beeminder twice about the same data point.
+  hash_ = json.dumps(datum, sort_keys=True)
+  if hash_ in seen:
+    return
+
   comment = datum['note']
   if datum['tags']:
     comment += "  tags:" + datum['tags']
 
   put_point(datum['start time'], duration_to_minutes(datum), goal, comment)
-
-  # Don't tell Beeminder twice about the same data point.
-  hash_ = json.dumps(datum, sort_keys=True)
-  if hash_ in seen:
-    return
   seen.add(hash_)
 
 
