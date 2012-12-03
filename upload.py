@@ -1,6 +1,7 @@
 import json
 import subprocess
 
+from copy import copy
 from pprint import pprint
 from time import sleep
 
@@ -40,11 +41,17 @@ def duration_to_minutes(datum):
   return int(h)*60 + int(m)  # round off seconds because of tracking overhead.
 
 
+def get_hash(datum):
+  datum_minus_duration = copy(datum)
+  del datum_minus_duration['duration']
+  return json.dumps(datum_minus_duration, sort_keys=True)
+
+
 def process_point(datum, goal):
   """ Upload the duration to the beeminder goal. """
 
   # Don't tell Beeminder twice about the same data point.
-  hash_ = json.dumps(datum, sort_keys=True)
+  hash_ = get_hash(datum)
   if hash_ in seen:
     return
 

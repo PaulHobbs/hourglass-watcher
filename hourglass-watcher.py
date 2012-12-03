@@ -1,18 +1,17 @@
 #! /usr/local/bin/python3
-import contextlib
 import csv
 import os
-import pickle
 import sys
 
 from datetime import datetime, date, timedelta
 from itertools import chain
 from operator import itemgetter
 from sleep_logic import sleep_handler
+from util import load_unload
 from time import mktime
 from time import sleep
 
-import upload
+import upload, sleep_logic
 
 def main():
   path_to_watch = "."
@@ -31,7 +30,7 @@ def main():
     list(map(process_file, added))
 
     before = after
-    sleep(10)
+    sleep(7)
 
 
 def process_file(fname):
@@ -85,28 +84,7 @@ def string_time_to_unix(string_time):
   return mktime(then.timetuple())  # return unix timestamp
 
 
-@contextlib.contextmanager
-def load_unload(k, m):
-  # maintain the set of seen points between runs.
-  try:
-    with open(k + ".db", "rb") as fp:
-      m[k] = pickle.load(fp)
-  except IOError:
-    pass
-
-  def catch(e):
-    with open(k + ".db", "wb") as fp:
-      pickle.dump(m[k], fp)
-    raise e
-
-  try:
-    yield
-  except KeyboardInterrupt as e:
-    catch(e)
-  except Exception as e:
-    catch(e)
-
-
 if __name__ == '__main__':
   with load_unload("seen", upload.__dict__):
-    main()
+    with load_unload("previous_time", sleep_logic.__dict__):
+      main()
