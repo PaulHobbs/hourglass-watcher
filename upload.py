@@ -4,6 +4,7 @@ import subprocess
 from pprint import pprint
 from time import sleep
 
+GOALS = None
 seen = set()
 
 def ext(*args):
@@ -20,28 +21,32 @@ def token():
   return 'auth_token=%s' % AUTH_TOKEN
 
 
-def process_point(datum, goal):
-  """ Upload the duration to the beeminder goal. """
+def duration_to_minutes(datum):
+  if not datum['duration']:
+    return 0
 
-
-  # Don't tell Beeminder twice about the same data point.
-  hash_ = json.dumps(datum, sort_keys = True)
-  if hash_ in seen:
-    return
-  seen.add(hash_)
-
+  h = 0
   try:
     h,m,_ = datum['duration'].split(':')
   except ValueError:
     m,_ = datum['duration'].split(':')
-  dur = int(h)*60 + int(m)  # round off seconds because of tracking overhead.
-  timestamp = datum['start time']
+  return int(h)*60 + int(m)  # round off seconds because of tracking overhead.
+
+
+def process_point(datum, goal):
+  """ Upload the duration to the beeminder goal. """
+
+  # Don't tell Beeminder twice about the same data point.
+  hash_ = json.dumps(datum, sort_keys=True)
+  if hash_ in seen:
+    return
+  seen.add(hash_)
 
   comment = datum['note']
   if datum['tags']:
     comment += "  tags:" + datum['tags']
 
-  put_point(timestamp, dur, goal, comment)
+  put_point(datum['start time'], duration_to_minutes(datum), goal, comment)
 
 
 def put_point(timestamp, dur, goal, note):

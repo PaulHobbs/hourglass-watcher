@@ -1,16 +1,13 @@
-import simplejson as json
 import time
-from upload import process_point
+import upload
 
-
-def conf():
-  with open("conf.json", "r") as f:
-    return json.load(f)
+RATIO = 0.99
+TARGET = 8 * 60  # 8 hours in minutes
 
 
 def next_sleep_dep(previous, new_sleep):
-  c = conf()
-  return (c['ratio'] ** dt()) * previous + (c['target'] - new_sleep)
+  delta = dt()
+  return (RATIO ** delta) * previous + delta * TARGET - new_sleep
 
 
 previous_time = time.time()
@@ -23,10 +20,12 @@ def dt():
 
 
 def sleep_dep_loop():
+  yield
   sleep_amount = 0
   sleep_debt = 0
   while True:
     sleep_debt = next_sleep_dep(sleep_debt, sleep_amount)
-    sleep_amount = (yield (sleep_debt))['duration']
-
-sleep_handler = sleep_dep_loop()
+    sleep_amount = upload.duration_to_minutes((yield (sleep_debt)))
+__loop = sleep_dep_loop()
+next(__loop)
+sleep_handler = __loop.send

@@ -14,7 +14,6 @@ from time import sleep
 
 import upload
 
-GOALS = None
 seen = set()
 
 
@@ -59,11 +58,13 @@ def process_file(fname):
     activity = datum['activity name']
     datum['start time'] = string_time_to_unix(datum['start time'])
 
+    heirarchy_goal = False
     if activity == 'sleep' or 'sleep' in datum['hierarchy path']:
       datum['activity name'] = 'sleepdebt'
       datum['duration'] = sleep_handler(datum)
+      heirarchy_goal = True
 
-    if activity in GOALS:
+    if activity in upload.GOALS or heirarchy_goal:
       upload.process_point(datum, activity)
 
 
@@ -73,8 +74,8 @@ def string_time_to_unix(string_time):
           string_time.split(':')))
 
   # handle 24 hour time as always AM
+  hms = list(hms)
   if len(hms) == 3:
-    hms = list(hms)
     hms.append('am')
 
   h, m, s, am_pm = hms
@@ -97,12 +98,17 @@ def load_unload(k, m):
   except IOError:
     pass
 
-  try:
-    yield
-  except:
+  def catch(e):
     with open(k + ".db", "wb") as fp:
       pickle.dump(m[k], fp)
-    raise
+    raise e
+
+  try:
+    yield
+  except KeyboardInterrupt as e:
+    catch(e)
+  except Exception as e:
+    catch(e)
 
 
 if __name__ == '__main__':
