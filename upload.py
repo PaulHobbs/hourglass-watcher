@@ -25,6 +25,13 @@ def duration_to_minutes(datum):
   if not datum['duration']:
     return 0
 
+  # is it numeric or a number string?
+  try:
+    return int(datum['duration'])
+  except ValueError:
+    pass
+
+  # parse a h:m:s or m:s
   h = 0
   try:
     h,m,_ = datum['duration'].split(':')
@@ -36,17 +43,17 @@ def duration_to_minutes(datum):
 def process_point(datum, goal):
   """ Upload the duration to the beeminder goal. """
 
-  # Don't tell Beeminder twice about the same data point.
-  hash_ = json.dumps(datum, sort_keys=True)
-  if hash_ in seen:
-    return
-  seen.add(hash_)
-
   comment = datum['note']
   if datum['tags']:
     comment += "  tags:" + datum['tags']
 
   put_point(datum['start time'], duration_to_minutes(datum), goal, comment)
+
+  # Don't tell Beeminder twice about the same data point.
+  hash_ = json.dumps(datum, sort_keys=True)
+  if hash_ in seen:
+    return
+  seen.add(hash_)
 
 
 def put_point(timestamp, dur, goal, note):
