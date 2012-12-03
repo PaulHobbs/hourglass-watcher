@@ -74,8 +74,7 @@ def string_time_to_unix(string_time):
   if len(hms) == 3:
     hms.append('am')
 
-  h, m, s, am_pm = hms
-
+  h,m,s,am_pm = hms
   h,m,s = map(int, (h,m,s))
 
   today = date.today()
