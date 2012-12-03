@@ -64,6 +64,9 @@ def process_point(datum, goal):
 
 
 def put_point(timestamp, dur, goal, note):
+  if dur == 0:
+    return
+
   print (timestamp, dur, goal)
 
 
