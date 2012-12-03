@@ -1,4 +1,5 @@
 import contextlib, pickle
+import json
 
 
 @contextlib.contextmanager
@@ -21,3 +22,7 @@ def load_unload(k, m):
     catch(e)
   except Exception as e:
     catch(e)
+
+
+def get_hash(datum):
+  return json.dumps(datum, sort_keys=True)

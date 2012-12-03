@@ -7,11 +7,12 @@ from datetime import datetime, date, timedelta
 from itertools import chain
 from operator import itemgetter
 from sleep_logic import sleep_handler
-from util import load_unload
-from time import mktime
-from time import sleep
+from util import load_unload, get_hash
+from time import mktime, sleep
 
 import upload, sleep_logic
+
+seen = set()
 
 def main():
   path_to_watch = "."
@@ -50,7 +51,11 @@ def process_file(fname):
 
       data.append(datum)
 
+  global seen
   for datum in data:
+    if get_hash(datum) in seen:
+      continue
+
     activity = datum['activity name']
     datum['start time'] = string_time_to_unix(datum['start time'])
 
@@ -62,6 +67,8 @@ def process_file(fname):
 
     if activity in upload.GOALS or heirarchy_goal:
       upload.process_point(datum, activity)
+
+    seen.add(get_hash(datum))
 
 
 def string_time_to_unix(string_time):
@@ -84,6 +91,6 @@ def string_time_to_unix(string_time):
 
 
 if __name__ == '__main__':
-  with load_unload("seen", upload.__dict__):
+  with load_unload("seen", globals()):
     with load_unload("previous_time", sleep_logic.__dict__):
       main()

@@ -6,7 +6,6 @@ from pprint import pprint
 from time import sleep
 
 GOALS = None
-seen = set()
 
 def ext(*args):
  return subprocess.check_output(*args).decode('utf-8')
@@ -41,26 +40,15 @@ def duration_to_minutes(datum):
   return int(h)*60 + int(m)  # round off seconds because of tracking overhead.
 
 
-def get_hash(datum):
-  datum_minus_duration = copy(datum)
-  del datum_minus_duration['duration']
-  return json.dumps(datum_minus_duration, sort_keys=True)
 
 
 def process_point(datum, goal):
   """ Upload the duration to the beeminder goal. """
-
-  # Don't tell Beeminder twice about the same data point.
-  hash_ = get_hash(datum)
-  if hash_ in seen:
-    return
-
   comment = datum['note']
   if datum['tags']:
     comment += "  tags:" + datum['tags']
 
   put_point(datum['start time'], duration_to_minutes(datum), goal, comment)
-  seen.add(hash_)
 
 
 def put_point(timestamp, dur, goal, note):
