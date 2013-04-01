@@ -20,6 +20,9 @@ def main():
 
   upload.USER, upload.AUTH_TOKEN = sys.argv[1:3]
 
+  if len(sys.argv) > 3:
+    sleep_logic.sleep_debt = int(sys.argv[3])
+
   while 1:
     after = set(os.listdir('.'))
     added = [name for name in after - before
@@ -51,9 +54,10 @@ def process_file(fname):
 
       data.append(datum)
 
-  global seen
   for datum in data:
-    if get_hash(datum) in seen:
+    hash_ = get_hash(datum)
+    if hash_ in seen:
+      print ("Skipping ", datum)
       continue
 
     activity = datum['activity name']
@@ -67,8 +71,8 @@ def process_file(fname):
 
     if activity in upload.GOALS or heirarchy_goal:
       upload.process_point(datum, activity)
-
-    seen.add(get_hash(datum))
+      print ("adding hash: ", get_hash(datum))
+      seen.add(hash_)
 
 
 def string_time_to_unix(string_time):
