@@ -6,8 +6,8 @@ import sys
 from datetime import datetime, date, timedelta
 from itertools import chain
 from operator import itemgetter
-from sleep_logic import sleep_handler
-from util import load_unload, get_hash
+from sleep_logic import sleep_handler, matches_sleep
+from util import load_unload, get_hash, in_heirarchal_goal
 from time import mktime, sleep
 
 import upload, sleep_logic
@@ -64,7 +64,10 @@ def process_file(fname):
     datum['start time'] = string_time_to_unix(datum['start time'])
 
     heirarchy_goal = False
-    if activity == 'sleep' or 'sleep' in datum['hierarchy path']:
+    if in_heirarchal_goal(datum):
+      heirarchy_goal = True
+
+    if matches_sleep(datum):
       activity = 'sleepdebt'
       datum['duration'] = sleep_handler(datum)
       heirarchy_goal = True

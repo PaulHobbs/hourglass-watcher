@@ -1,20 +1,20 @@
 import json
 import subprocess
 
-from copy import copy
 from pprint import pprint
 from time import sleep
 
 GOALS = None
+USER = None
+AUTH_TOKEN = None
+
 
 def ext(*args):
  return subprocess.check_output(*args).decode('utf-8')
 
-USER = None
-AUTH_TOKEN = None
 
 def root():
-  return 'https://www.beeminder.com/api/v1/users/' + USER
+  return 'https://www.beeminder.com/api/v1/users/%s' % USER
 
 
 def token():
@@ -38,8 +38,6 @@ def duration_to_minutes(datum):
   except ValueError:
     m,_ = datum['duration'].split(':')
   return int(h)*60 + int(m)  # round off seconds because of tracking overhead.
-
-
 
 
 def process_point(datum, goal):
@@ -77,8 +75,6 @@ def put_point(timestamp, dur, goal, note):
     except Exception as e:
       print ("Warning: POSTing failed with exception: ", e)
       sleep(10)
-
-
 
 
 def update_goals():

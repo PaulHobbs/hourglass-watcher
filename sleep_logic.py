@@ -32,3 +32,7 @@ def sleep_dep_loop():
 __loop = sleep_dep_loop()
 next(__loop)
 sleep_handler = __loop.send
+
+
+def matches_sleep(datum):
+  return datum['activity name'] == 'sleep' or 'sleep' in datum['hierarchy path']
