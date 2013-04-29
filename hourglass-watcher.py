@@ -7,7 +7,7 @@ from datetime import datetime, date, timedelta
 from itertools import chain
 from operator import itemgetter
 from sleep_logic import sleep_handler, matches_sleep
-from util import load_unload, get_hash, in_heirarchal_goal
+from util import load_unload, get_hash, in_heirarchal_goal, HEIRARCHICAL_GOAL_POSTFIX
 from time import mktime, sleep
 
 import upload, sleep_logic
@@ -63,19 +63,22 @@ def process_file(fname):
     activity = datum['activity name']
     datum['start time'] = string_time_to_unix(datum['start time'])
 
-    heirarchy_goal = False
-    if in_heirarchal_goal(datum):
-      heirarchy_goal = True
+    def process(activity_name):
+      upload.process_point(datum, activity_name)
+      print ("adding hash: ", hash_)
+      seen.add(hash_)
+
+    heirarchical_activity = in_heirarchal_goal(datum)
+    if heirarchical_activity:
+      process(heirarchical_activity)
 
     if matches_sleep(datum):
       activity = 'sleepdebt'
       datum['duration'] = sleep_handler(datum)
-      heirarchy_goal = True
+      process(activity)
 
-    if activity in upload.GOALS or heirarchy_goal:
-      upload.process_point(datum, activity)
-      print ("adding hash: ", get_hash(datum))
-      seen.add(hash_)
+    elif activity in upload.GOALS:
+      process(activity)
 
 
 def string_time_to_unix(string_time):

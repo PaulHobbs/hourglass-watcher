@@ -4,7 +4,7 @@ import json
 
 import upload
 
-HEIRARCHAL_GOAL_POSTFIX = '-accum'
+HEIRARCHICAL_GOAL_POSTFIX = '-accum'
 
 
 @contextlib.contextmanager
@@ -32,12 +32,13 @@ def load_unload(k, m):
 get_hash = partial(json.dumps, sort_keys=True)
 
 def heirarchal_goals():
-  return set(g
-             for g in upload.GOALS
-             if g.endswith(HEIRARCHAL_GOAL_POSTFIX))
+  return set(g for g in upload.GOALS
+             if g.endswith(HEIRARCHICAL_GOAL_POSTFIX))
 
 
 def in_heirarchal_goal(datum):
-  return any(datum['activity name'] == g + HEIRARCHAL_GOAL_POSTFIX
-             or g in datum['hierarchy path']
-             for g in heirarchal_goals())
+  for g in heirarchal_goals():
+    if HEIRARCHICAL_GOAL_POSTFIX in g:
+      g_ = g[:-len(HEIRARCHICAL_GOAL_POSTFIX)]
+      if datum['activity name'] == g_ or g_ in datum['hierarchy path']:
+        return g
