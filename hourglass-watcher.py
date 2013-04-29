@@ -3,11 +3,9 @@ import csv
 import os
 import sys
 
-from datetime import datetime, date, timedelta
-from itertools import chain
 from operator import itemgetter
 from sleep_logic import sleep_handler, matches_sleep
-from util import load_unload, get_hash, in_heirarchal_goal, HEIRARCHICAL_GOAL_POSTFIX
+from util import load_unload, get_hash, in_heirarchal_goal, HEIRARCHICAL_GOAL_POSTFIX, string_time_to_unix
 from time import mktime, sleep
 
 import upload, sleep_logic
@@ -55,22 +53,24 @@ def process_file(fname):
       data.append(datum)
 
   for datum in data:
-    hash_ = get_hash(datum)
-    if hash_ in seen:
+    if get_hash(datum) in seen:
       print ("Skipping ", datum)
       continue
 
     activity = datum['activity name']
     datum['start time'] = string_time_to_unix(datum['start time'])
 
-    def process(activity_name):
+    def process(activity_name, datum=datum):
       upload.process_point(datum, activity_name)
+      hash_ = get_hash(datum)
       print ("adding hash: ", hash_)
       seen.add(hash_)
 
     heirarchical_activity = in_heirarchal_goal(datum)
     if heirarchical_activity:
-      process(heirarchical_activity)
+      datum_ = dict(datum,
+                    note='%s  -- (%s)' % (datum['note'], datum['activity name']))
+      process(heirarchical_activity, datum_)
 
     if matches_sleep(datum):
       activity = 'sleepdebt'
@@ -79,25 +79,6 @@ def process_file(fname):
 
     elif activity in upload.GOALS:
       process(activity)
-
-
-def string_time_to_unix(string_time):
-  hms = chain.from_iterable(
-      map(lambda part: part.split(),
-          string_time.split(':')))
-
-  # handle 24 hour time as always AM
-  hms = list(hms)
-  if len(hms) == 3:
-    hms.append('am')
-
-  h,m,s,am_pm = hms
-  h,m,s = map(int, (h,m,s))
-
-  today = date.today()
-  extra = timedelta(0,0,0,0,0, 12 if am_pm.lower() == "pm" and h != 12 else 0)
-  then = datetime(today.year, today.month, today.day, h, m, s, 0) + extra
-  return mktime(then.timetuple())  # return unix timestamp
 
 
 if __name__ == '__main__':
