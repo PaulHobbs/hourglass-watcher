@@ -6,7 +6,7 @@ import sys
 from operator import itemgetter
 from sleep_logic import sleep_handler, matches_sleep
 from util import load_unload, get_hash, in_heirarchal_goal, HEIRARCHICAL_GOAL_POSTFIX, string_time_to_unix
-from time import mktime, sleep
+from time import sleep
 
 import upload, sleep_logic
 
