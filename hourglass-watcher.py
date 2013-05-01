@@ -53,7 +53,8 @@ def process_file(fname):
       data.append(datum)
 
   for datum in data:
-    if get_hash(datum) in seen:
+    hash_ = get_hash(datum)
+    if hash_ in seen:
       print ("Skipping ", datum)
       continue
 
@@ -62,7 +63,6 @@ def process_file(fname):
 
     def process(activity_name, datum=datum):
       upload.process_point(datum, activity_name)
-      hash_ = get_hash(datum)
       print ("adding hash: ", hash_)
       seen.add(hash_)
 
