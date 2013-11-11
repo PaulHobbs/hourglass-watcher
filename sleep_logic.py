@@ -11,8 +11,11 @@ def next_sleep_dep(previous, new_sleep):
   debt = (RATIO ** delta) * previous + delta * TARGET - new_sleep
   return max(debt, 0)
 
+
 previous_time = time.time()
 SEC_PER_DAY = 60 * 60 * 24.0
+
+
 def dt():
   global previous_time
   val = (time.time() - previous_time) / SEC_PER_DAY

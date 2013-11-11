@@ -1,16 +1,20 @@
 #! /usr/local/bin/python3
+
+from operator import itemgetter
+from time import sleep
 import csv
 import os
 import sys
+import time
 
-from operator import itemgetter
 from sleep_logic import sleep_handler, matches_sleep
-from util import load_unload, get_hash, in_heirarchal_goal, HEIRARCHICAL_GOAL_POSTFIX, string_time_to_unix
-from time import sleep
+from util import load_unload, get_hash, in_heirarchal_goal, string_time_to_unix
+import upload
+import sleep_logic
 
-import upload, sleep_logic
 
 seen = set()
+
 
 def main():
   path_to_watch = "."
@@ -21,13 +25,16 @@ def main():
   if len(sys.argv) > 3:
     sleep_logic.sleep_debt = int(sys.argv[3])
 
+  if '--reset-previous-time' in sys.argv[1:]:
+    sleep_logic.previous_time = time.time()
+
   while 1:
     after = set(os.listdir('.'))
     added = [name for name in after - before
              if '_logs_' in name]
 
     if added:
-      print ("Added: ", ", ".join (added))
+      print ("Added: ", ", ".join(added))
       upload.update_goals()
     list(map(process_file, added))
 
