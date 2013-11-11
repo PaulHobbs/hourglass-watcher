@@ -34,10 +34,10 @@ def duration_to_minutes(datum):
   # parse a h:m:s or m:s
   h = 0
   try:
-    h,m,_ = datum['duration'].split(':')
+    h, m , _ = datum['duration'].split(':')
   except ValueError:
-    m,_ = datum['duration'].split(':')
-  return int(h)*60 + int(m)  # round off seconds because of tracking overhead.
+    m , _ = datum['duration'].split(':')
+  return int(h) * 60 + int(m)  # round off seconds because of tracking overhead.
 
 
 def process_point(datum, goal):
@@ -55,23 +55,23 @@ def put_point(timestamp, dur, goal, note):
 
   print (timestamp, dur, goal)
 
-
-  success = False
-  while not success:
+  for _ in range(10):
     try:
-      args = ['http', 'POST', root() + '/goals/' + goal + '/datapoints.json',
-                  'timestamp=%d' % timestamp,
-                  'value=%d' % dur,
-                  "comment='%s'" % note,
-                  token()]
+      args = [
+        'http', 'POST', root() + '/goals/' + goal + '/datapoints.json',
+        'timestamp=%d' % timestamp,
+        'value=%d' % dur,
+        "comment='%s'" % note,
+        token()
+      ]
       print ("args: ")
       pprint(args)
       result = ext(args)
       print ("Success!  Result:")
-      print ()
       print (result)
+      print ()
+      return
 
-      success = True
     except Exception as e:
       print ("Warning: POSTing failed with exception: ", e)
       sleep(10)
