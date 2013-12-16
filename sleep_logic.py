@@ -1,7 +1,7 @@
 import time
 import upload
 
-RATIO = 0.95
+RATIO = 0.85
 TARGET = 8.5 * 60  # hours in minutes
 sleep_debt = 0
 
